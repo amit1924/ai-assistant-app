@@ -1,11 +1,59 @@
-/* Flashing effect for the microphone button */
+/* CSS for flashing effect from green to red */
 @keyframes flash {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+  0% { background-color: #34d399; } /* Green */
+  50% { background-color: #ef4444; } /* Red */
+  100% { background-color: #34d399; } /* Green */
+}
+
+.flashing {
+  animation: flash 1s infinite;
+}
+
+
+/* chat.css */
+
+/* Ensure the chat container scrolls independently */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Ensure the chat messages area scrolls independently */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Style for the fixed input box */
+.chat-input-container {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #ddd;
+  background-color: #fff;
+  position: relative;
+}
+
+.chat-input {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  resize: none;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.send-button,
+.mic-button,
+.stop-button {
+  margin-left: 8px;
+}
+
+/* Optional: Add responsive design if needed */
+@media (max-width: 600px) {
+  .chat-input {
+    font-size: 14px;
   }
-  
-  .flashing {
-    animation: flash 1s infinite;
-  }
-  
+}

@@ -1,24 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner icon from react-icons
-import Prism from "prismjs"; // Import Prism.js for syntax highlighting
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";
-import "./chat.css"; // Import a Prism.js theme for styling code
+import "./chat.css";
 
 function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false); // Track if currently speaking
-  const [isTyping, setIsTyping] = useState(false); // Typing indicator
-  const [showDefaultMessage, setShowDefaultMessage] = useState(true); // Show default message state
-  const [isFlashing, setIsFlashing] = useState(false); // Track if mic is flashing
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showDefaultMessage, setShowDefaultMessage] = useState(true);
+  const [isFlashing, setIsFlashing] = useState(false);
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
-  const userScrolledUp = useRef(false); // Track if user has scrolled up
-  const recognitionRef = useRef(null); // Ref for speech recognition
-  const speechRef = useRef(null); // Ref for SpeechSynthesisUtterance
+  const userScrolledUp = useRef(false);
+  const recognitionRef = useRef(null);
+  const speechRef = useRef(null);
 
-  // Initialize Speech Recognition API
   useEffect(() => {
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
       const SpeechRecognition =
@@ -31,7 +30,7 @@ function Chat() {
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInput(transcript);
-        stopListening(); // Stop listening after getting the result
+        stopListening();
       };
 
       recognitionRef.current.onerror = (event) => {
@@ -39,18 +38,17 @@ function Chat() {
       };
 
       recognitionRef.current.onstart = () => {
-        setIsFlashing(true); // Start flashing when speech recognition starts
+        setIsFlashing(true);
       };
 
       recognitionRef.current.onend = () => {
-        setIsFlashing(false); // Stop flashing when speech recognition ends
+        setIsFlashing(false);
       };
     } else {
       alert("Your browser does not support speech recognition.");
     }
   }, []);
 
-  // Clean up Speech Synthesis when component unmounts
   useEffect(() => {
     return () => {
       if ("speechSynthesis" in window) {
@@ -60,14 +58,12 @@ function Chat() {
     };
   }, []);
 
-  // Effect to automatically scroll to the bottom when new messages arrive
   useEffect(() => {
     if (!userScrolledUp.current) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
-  // Handle AI response
   const fetchAIResponse = async (message) => {
     const apiKey = import.meta.env.VITE_API_KEY;
     setLoading(true);
@@ -100,9 +96,9 @@ function Chat() {
         data.candidates[0].content.parts.length > 0
       ) {
         const aiResponse = data.candidates[0].content.parts[0].text;
-        const cleanedResponse = sanitizeText(aiResponse); // Clean AI's response
-        speakText(cleanedResponse); // Speak AI's response
-        setShowDefaultMessage(false); // Hide default message
+        const cleanedResponse = sanitizeText(aiResponse);
+        speakText(cleanedResponse);
+        setShowDefaultMessage(false);
         return aiResponse;
       } else {
         return "No response from the AI.";
@@ -115,23 +111,19 @@ function Chat() {
     }
   };
 
-  // Sanitize text to remove special characters for speech synthesis
   const sanitizeText = (text) => {
     return text.replace(/\*\*/g, "").replace(/\*/g, "");
   };
 
-  // Handle sending messages
   const handleSend = async () => {
     if (input.trim() === "") return;
 
-    // Optimistically add the user's message to the chat
     setMessages((prev) => [
       ...prev,
       { sender: "user", type: "text", content: input },
     ]);
     setInput("");
 
-    // Fetch AI response in the background
     const aiResponse = await fetchAIResponse(input);
     setMessages((prev) => [
       ...prev,
@@ -139,31 +131,27 @@ function Chat() {
     ]);
   };
 
-  // Handle typing indicator
   const handleTyping = () => {
     setIsTyping(true);
-    setTimeout(() => setIsTyping(false), 1000); // Hide typing indicator after 1 second
+    setTimeout(() => setIsTyping(false), 1000);
   };
 
-  // Start voice input
   const startListening = () => {
     if (recognitionRef.current) {
       recognitionRef.current.start();
     }
   };
 
-  // Stop voice input
   const stopListening = () => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
   };
 
-  // Speak text
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
       if (speechRef.current) {
-        window.speechSynthesis.cancel(); // Cancel any ongoing speech synthesis
+        window.speechSynthesis.cancel();
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -178,7 +166,6 @@ function Chat() {
     }
   };
 
-  // Stop speech synthesis
   const stopSpeaking = () => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -186,7 +173,6 @@ function Chat() {
     }
   };
 
-  // Render message content based on type
   const renderMessageContent = (message) => {
     switch (message.type) {
       case "text":
@@ -198,7 +184,6 @@ function Chat() {
     }
   };
 
-  // Format content (Markdown-like support)
   const renderFormattedContent = (content) => {
     const formattedContent = content.split("\n").map((line, index) => {
       if (line.startsWith("**")) {
@@ -246,27 +231,20 @@ function Chat() {
   };
 
   useEffect(() => {
-    Prism.highlightAll(); // Highlight code syntax after component updates
+    Prism.highlightAll();
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-white shadow-md rounded-lg">
-      <div
-        ref={chatContainerRef}
-        className="flex-1 p-4 overflow-y-auto space-y-2"
-        onScroll={() => {
-          const container = chatContainerRef.current;
-          if (container) {
-            userScrolledUp.current =
-              container.scrollTop <
-              container.scrollHeight - container.clientHeight - 50;
-          }
-        }}
-      >
-        {/* Show default message if no AI response has been received */}
+    <div className="chat-container">
+      <div ref={chatContainerRef} className="chat-messages">
         {showDefaultMessage && (
           <div className="p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
-            Hello users, ask anything to me. I am your chat assistant.
+            <h1 className="text-2xl">
+              Hello users, ask anything to me.{" "}
+              <span className="text-pink-900 animate-pulse text-2xl">
+                I am your chat assistant.
+              </span>
+            </h1>
           </div>
         )}
         {messages.map((msg, index) => (
@@ -274,35 +252,25 @@ function Chat() {
             key={index}
             className={`p-2 rounded ${
               msg.sender === "user"
-                ? "bg-blue-100 text-blue-800 self-end"
-                : "bg-gray-200 text-gray-800 self-start"
+                ? "bg-blue-500 text-white self-end"
+                : "bg-gray-300"
             }`}
           >
             {renderMessageContent(msg)}
           </div>
         ))}
         {loading && (
-          <div className="flex justify-center items-center py-2">
-            <AiOutlineLoading3Quarters className="animate-spin text-blue-500" />
+          <div className="flex items-center justify-center p-2">
+            <AiOutlineLoading3Quarters
+              className="animate-spin text-gray-500"
+              size={24}
+            />
           </div>
         )}
+        {isTyping && <div className="p-2 text-gray-500">User is typing...</div>}
         <div ref={bottomRef} />
       </div>
-
-      {/* Input and buttons */}
-      <div className="p-4 border-t flex items-center bg-gray-100">
-        <textarea
-          className="flex-1 p-2 border rounded-md"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder="Type a message..."
-        />
+      <div className="chat-input-container">
         <button
           onClick={startListening}
           className={`p-3 ${
@@ -311,18 +279,28 @@ function Chat() {
         >
           🎤
         </button>
+        <textarea
+          value={input}
+          onChange={(e) => {
+            setInput(e.target.value);
+            handleTyping();
+          }}
+          className="chat-input"
+          placeholder="Type a message or click the mic..."
+          rows={1}
+        />
         <button
           onClick={handleSend}
-          className="p-3 bg-blue-500 text-white rounded-lg"
+          className="send-button p-3 bg-blue-500 text-white rounded-lg"
         >
           Send
         </button>
         {isSpeaking && (
           <button
             onClick={stopSpeaking}
-            className="ml-2 p-2 bg-red-500 text-white rounded-lg"
+            className="stop-button p-3 bg-red-500 text-white rounded-lg ml-2"
           >
-            Stop Speaking
+            Stop
           </button>
         )}
       </div>
