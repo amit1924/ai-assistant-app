@@ -57,10 +57,14 @@
     font-size: 14px;
   }
 
-  .send-button,
-.mic-button,
-.stop-button {
-  margin-left: 15px;
+
+
 }
 
+@media(max-width:500px){
+  .send-button,
+  .mic-button,
+  .stop-button {
+    margin-left: 35px;
+  }
 }
