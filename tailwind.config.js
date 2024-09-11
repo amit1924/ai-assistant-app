@@ -15,15 +15,27 @@ export default {
       fontWeight: {
         bold: "bold",
       },
-      animation: {
-        typewriter: "typewriter 2s steps(11) forwards",
-      },
       keyframes: {
-        typewriter: {
-          to: {
-            left: "100%",
+        typing: {
+          "0%": {
+            width: "0%",
+            visibility: "hidden",
+          },
+          "100%": {
+            width: "100%",
           },
         },
+        blink: {
+          "50%": {
+            borderColor: "transparent",
+          },
+          "100%": {
+            borderColor: "white",
+          },
+        },
+      },
+      animation: {
+        typing: "typing 10s steps(20)  alternate, blink .7s infinite",
       },
     },
   },
