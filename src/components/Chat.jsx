@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner icon from react-icons
+import Prism from "prismjs"; // Import Prism.js for syntax highlighting
+import "prismjs/themes/prism-tomorrow.css"; // Import a Prism.js theme for styling code
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -7,6 +9,7 @@ function Chat() {
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false); // Track if currently speaking
   const [isTyping, setIsTyping] = useState(false); // Typing indicator
+  const [showDefaultMessage, setShowDefaultMessage] = useState(true); // Show default message state
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const userScrolledUp = useRef(false); // Track if user has scrolled up
@@ -34,6 +37,16 @@ function Chat() {
     } else {
       alert("Your browser does not support speech recognition.");
     }
+  }, []);
+
+  // Clean up Speech Synthesis when component unmounts
+  useEffect(() => {
+    return () => {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+    };
   }, []);
 
   // Effect to automatically scroll to the bottom when new messages arrive
@@ -78,6 +91,7 @@ function Chat() {
         const aiResponse = data.candidates[0].content.parts[0].text;
         const cleanedResponse = sanitizeText(aiResponse); // Clean AI's response
         speakText(cleanedResponse); // Speak AI's response
+        setShowDefaultMessage(false); // Hide default message
         return aiResponse;
       } else {
         return "No response from the AI.";
@@ -131,7 +145,7 @@ function Chat() {
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
       if (speechRef.current) {
-        window.speechSynthesis.cancel();
+        window.speechSynthesis.cancel(); // Cancel any ongoing speech synthesis
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -167,39 +181,56 @@ function Chat() {
   };
 
   // Format content (Markdown-like support)
+
   const renderFormattedContent = (content) => {
     const formattedContent = content.split("\n").map((line, index) => {
       if (line.startsWith("**")) {
+        const content = line.replace(/\*\*/g, "");
         return (
-          <p key={index} className="font-bold">
-            {line.replace(/\*\*/g, "")}
+          <p key={index} className="text-bold-red text-xl">
+            {content}
           </p>
         );
       } else if (line.startsWith("*")) {
+        const content = line.replace(/\*/g, "");
         return (
-          <li key={index} className="list-disc list-inside">
-            {line.replace(/\*/g, "")}
+          <li key={index} className="text-black text-xl">
+            {content}
           </li>
         );
       } else if (line.match(/^# /)) {
         return (
-          <h2 key={index} className="text-lg font-semibold">
+          <h2 key={index} className="text-lg font-semibold text-green-600">
             {line.replace(/^# /, "")}
           </h2>
         );
       } else if (line.match(/^## /)) {
         return (
-          <h3 key={index} className="text-md font-semibold">
+          <h3 key={index} className="text-md font-semibold text-yellow-600">
             {line.replace(/^## /, "")}
           </h3>
         );
+      } else if (line.startsWith("!")) {
+        return (
+          <p key={index} className="text-bold-blue">
+            {line.replace(/^!/, "")}
+          </p>
+        );
       } else {
-        return <p key={index}>{line}</p>;
+        return (
+          <p key={index} className="text-gray-900">
+            {line}
+          </p>
+        );
       }
     });
 
     return <div className="space-y-2">{formattedContent}</div>;
   };
+
+  useEffect(() => {
+    Prism.highlightAll(); // Highlight code syntax after component updates
+  }, [messages]);
 
   return (
     <div className="flex flex-col h-screen bg-white shadow-md rounded-lg">
@@ -215,6 +246,12 @@ function Chat() {
           }
         }}
       >
+        {/* Show default message if no AI response has been received */}
+        {showDefaultMessage && (
+          <div className="p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
+            Hello users, ask anything to me. I am your chat assistant.
+          </div>
+        )}
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -254,21 +291,16 @@ function Chat() {
             }}
             className="w-full p-3 border rounded-lg text-lg resize-none overflow-auto"
             placeholder="Type a message or click the mic..."
-            style={{
-              maxHeight: "70px",
-              overflowY: "auto",
-              whiteSpace: "pre-wrap",
-            }} // Limit height and add scrolling
+            rows={1}
           />
         </div>
-
         <button
           onClick={handleSend}
           className="p-3 bg-blue-500 text-white rounded-lg"
         >
           Send
         </button>
-        {isSpeaking && ( // Conditionally render the Stop button
+        {isSpeaking && (
           <button
             onClick={stopSpeaking}
             className="p-3 bg-red-500 text-white rounded-lg ml-2"
