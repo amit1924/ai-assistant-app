@@ -12,6 +12,7 @@ function Chat() {
   const [isTyping, setIsTyping] = useState(false);
   const [showDefaultMessage, setShowDefaultMessage] = useState(true);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [language, setLanguage] = useState("en-IN");
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const userScrolledUp = useRef(false);
@@ -19,13 +20,14 @@ function Chat() {
   const speechRef = useRef(null);
 
   useEffect(() => {
+    // Initialize speech recognition
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
       const SpeechRecognition =
         window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = "en-US";
+      recognitionRef.current.lang = language;
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -47,7 +49,7 @@ function Chat() {
     } else {
       alert("Your browser does not support speech recognition.");
     }
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     return () => {
@@ -155,7 +157,7 @@ function Chat() {
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
+      utterance.lang = language;
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
 
@@ -235,8 +237,11 @@ function Chat() {
   }, [messages]);
 
   return (
-    <div className="chat-container">
-      <div ref={chatContainerRef} className="chat-messages">
+    <div className="chat-container max-w-screen-sm mx-auto p-4">
+      <div
+        ref={chatContainerRef}
+        className="chat-messages h-[70vh] overflow-y-auto mb-2"
+      >
         {showDefaultMessage && (
           <div className="mt-[250px] p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
             <h1 className="text-5xl text-black">
@@ -267,42 +272,59 @@ function Chat() {
             />
           </div>
         )}
-        {isTyping && <div className="p-2 text-gray-500">User is typing...</div>}
+        {isTyping && <div className="p-2 text-sm text-gray-500">Typing...</div>}
         <div ref={bottomRef} />
       </div>
-      <div className="chat-input-container">
+
+      <div className="flex flex-wrap gap-2 p-2">
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="p-1 rounded border border-gray-300"
+        >
+          <option value="en-IN">English (India)</option>
+          <option value="hi-IN">Hindi (India)</option>
+        </select>
         <button
           onClick={startListening}
-          className={`p-3 ${
-            isFlashing ? "flashing" : ""
-          } bg-green-500 text-white rounded-lg mr-2`}
+          className={`p-2 ${
+            isFlashing ? "bg-blue-300 animate-pulse" : "bg-blue-500"
+          } rounded text-white`}
         >
-          🎤
+          {isFlashing ? "Listening..." : "Start Listening"}
         </button>
-        <textarea
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            handleTyping();
-          }}
-          className="chat-input"
-          placeholder="Type a message or click the mic..."
-          rows={1}
-        />
+        <button
+          onClick={stopListening}
+          className="p-2 bg-red-500 rounded text-white"
+        >
+          Stop Listening
+        </button>
         <button
           onClick={handleSend}
-          className="send-button p-3 bg-blue-500 text-white rounded-lg"
+          className="p-2 bg-green-500 rounded text-white"
         >
           Send
         </button>
-        {isSpeaking && (
-          <button
-            onClick={stopSpeaking}
-            className="stop-button p-3 bg-red-500 text-white rounded-lg ml-2"
-          >
-            Stop
-          </button>
-        )}
+        <button
+          onClick={stopSpeaking}
+          className={`p-2 ${
+            isSpeaking ? "bg-yellow-300 animate-pulse" : "bg-yellow-500"
+          } rounded text-white`}
+        >
+          {isSpeaking ? "Stop Speaking" : "Speak"}
+        </button>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSend();
+            }
+          }}
+          placeholder="Type a message..."
+          className="p-2 border rounded w-full"
+        />
       </div>
     </div>
   );
