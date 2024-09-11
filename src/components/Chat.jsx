@@ -238,7 +238,7 @@ function Chat() {
     <div className="chat-container">
       <div ref={chatContainerRef} className="chat-messages">
         {showDefaultMessage && (
-          <div className="p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
+          <div className="mt-[250px] p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
             <h1 className="text-2xl">
               Hello users, ask anything to me.{" "}
               <span className="text-pink-900 animate-pulse text-2xl">

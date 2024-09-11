@@ -56,4 +56,11 @@
   .chat-input {
     font-size: 14px;
   }
+
+  .send-button,
+.mic-button,
+.stop-button {
+  margin-left: 15px;
+}
+
 }
