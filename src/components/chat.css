@@ -51,20 +51,24 @@
   margin-left: 8px;
 }
 
-/* Optional: Add responsive design if needed */
+
+/* Optional: Adjust button sizes and spacing for small screens */
 @media (max-width: 600px) {
-  .chat-input {
-    font-size: 14px;
+  .chat-input-container {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    align-items: flex-start; /* Align buttons to the start of the container */
   }
 
+  .chat-input-container button {
+    width: 100%; /* Make buttons full width */
+    margin-bottom: 8px; /* Add margin between buttons */
+  }
 
-
-}
-
-@media(max-width:500px){
-  .send-button,
-  .mic-button,
-  .stop-button {
-    margin-left: 35px;
+  .chat-input-container textarea {
+    font-size: 16px; /* Adjust font size for better readability */
+    padding: 1rem;
+    width: 100%; /* Adjust padding for better input sizing */
   }
 }
+
+
