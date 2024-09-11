@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner icon from react-icons
 import Prism from "prismjs"; // Import Prism.js for syntax highlighting
-import "prismjs/themes/prism-tomorrow.css"; // Import a Prism.js theme for styling code
+import "prismjs/themes/prism-tomorrow.css";
+import "./chat.css"; // Import a Prism.js theme for styling code
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -10,6 +11,7 @@ function Chat() {
   const [isSpeaking, setIsSpeaking] = useState(false); // Track if currently speaking
   const [isTyping, setIsTyping] = useState(false); // Typing indicator
   const [showDefaultMessage, setShowDefaultMessage] = useState(true); // Show default message state
+  const [isFlashing, setIsFlashing] = useState(false); // Track if mic is flashing
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const userScrolledUp = useRef(false); // Track if user has scrolled up
@@ -29,10 +31,19 @@ function Chat() {
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInput(transcript);
+        stopListening(); // Stop listening after getting the result
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
+      };
+
+      recognitionRef.current.onstart = () => {
+        setIsFlashing(true); // Start flashing when speech recognition starts
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsFlashing(false); // Stop flashing when speech recognition ends
       };
     } else {
       alert("Your browser does not support speech recognition.");
@@ -141,6 +152,13 @@ function Chat() {
     }
   };
 
+  // Stop voice input
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  };
+
   // Speak text
   const speakText = (text) => {
     if ("speechSynthesis" in window) {
@@ -181,7 +199,6 @@ function Chat() {
   };
 
   // Format content (Markdown-like support)
-
   const renderFormattedContent = (content) => {
     const formattedContent = content.split("\n").map((line, index) => {
       if (line.startsWith("**")) {
@@ -257,43 +274,43 @@ function Chat() {
             key={index}
             className={`p-2 rounded ${
               msg.sender === "user"
-                ? "bg-blue-500 text-white self-end"
-                : "bg-gray-300"
+                ? "bg-blue-100 text-blue-800 self-end"
+                : "bg-gray-200 text-gray-800 self-start"
             }`}
           >
             {renderMessageContent(msg)}
           </div>
         ))}
         {loading && (
-          <div className="flex items-center justify-center p-2">
-            <AiOutlineLoading3Quarters
-              className="animate-spin text-gray-500"
-              size={24}
-            />
+          <div className="flex justify-center items-center py-2">
+            <AiOutlineLoading3Quarters className="animate-spin text-blue-500" />
           </div>
         )}
-        {isTyping && <div className="p-2 text-gray-500">User is typing...</div>}
-        <div ref={bottomRef} /> {/* Empty div to serve as the scroll target */}
+        <div ref={bottomRef} />
       </div>
-      <div className="p-4 border-t flex items-center space-x-2">
+
+      {/* Input and buttons */}
+      <div className="p-4 border-t flex items-center bg-gray-100">
+        <textarea
+          className="flex-1 p-2 border rounded-md"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+          placeholder="Type a message..."
+        />
         <button
           onClick={startListening}
-          className="p-3 bg-green-500 text-white rounded-lg mr-2"
+          className={`p-3 ${
+            isFlashing ? "flashing" : ""
+          } bg-green-500 text-white rounded-lg mr-2`}
         >
           🎤
         </button>
-        <div className="flex-1 relative">
-          <textarea
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              handleTyping();
-            }}
-            className="w-full p-3 border rounded-lg text-lg resize-none overflow-auto"
-            placeholder="Type a message or click the mic..."
-            rows={1}
-          />
-        </div>
         <button
           onClick={handleSend}
           className="p-3 bg-blue-500 text-white rounded-lg"
@@ -303,9 +320,9 @@ function Chat() {
         {isSpeaking && (
           <button
             onClick={stopSpeaking}
-            className="p-3 bg-red-500 text-white rounded-lg ml-2"
+            className="ml-2 p-2 bg-red-500 text-white rounded-lg"
           >
-            Stop
+            Stop Speaking
           </button>
         )}
       </div>
