@@ -288,16 +288,16 @@ function Chat() {
         <button
           onClick={startListening}
           className={`p-2 ${
-            isFlashing ? "bg-blue-300 animate-pulse" : "bg-blue-500"
+            isFlashing ? "bg-blue-800 animate-pulse" : "bg-blue-500"
           } rounded text-white`}
         >
-          {isFlashing ? "Listening..." : "Start Listening"}
+          {isFlashing ? "Listening..." : "🎤"}
         </button>
         <button
           onClick={stopListening}
           className="p-2 bg-red-500 rounded text-white"
         >
-          Stop Listening
+          🔲
         </button>
         <button
           onClick={handleSend}
@@ -311,7 +311,7 @@ function Chat() {
             isSpeaking ? "bg-yellow-300 animate-pulse" : "bg-yellow-500"
           } rounded text-white`}
         >
-          {isSpeaking ? "Stop Speaking" : "Speak"}
+          {isSpeaking ? "Stop AI Speaking" : "Speak"}
         </button>
         <input
           type="text"
