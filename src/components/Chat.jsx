@@ -246,18 +246,22 @@ function Chat() {
           🎤
         </button>
         <div className="flex-1 relative">
-          <input
-            type="text"
+          <textarea
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
               handleTyping();
             }}
-            className="w-full p-3 border rounded-lg resize-none text-lg overflow-auto"
+            className="w-full p-3 border rounded-lg text-lg resize-none overflow-auto"
             placeholder="Type a message or click the mic..."
-            style={{ maxHeight: "120px", overflowY: "auto" }} // Limit height and add scrolling
+            style={{
+              maxHeight: "70px",
+              overflowY: "auto",
+              whiteSpace: "pre-wrap",
+            }} // Limit height and add scrolling
           />
         </div>
+
         <button
           onClick={handleSend}
           className="p-3 bg-blue-500 text-white rounded-lg"
