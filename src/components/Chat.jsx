@@ -13,6 +13,7 @@ function Chat() {
   const [showDefaultMessage, setShowDefaultMessage] = useState(true);
   const [isFlashing, setIsFlashing] = useState(false);
   const [language, setLanguage] = useState("en-IN");
+  const [isSpeechInput, setIsSpeechInput] = useState(false); // New state for differentiating speech input
   const chatContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const userScrolledUp = useRef(false);
@@ -20,7 +21,6 @@ function Chat() {
   const speechRef = useRef(null);
 
   useEffect(() => {
-    // Initialize speech recognition
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
       const SpeechRecognition =
         window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -31,8 +31,11 @@ function Chat() {
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        stopListening();
+        setInput(transcript); // Set input with the recognized text
+        setIsSpeechInput(true); // Set speech input flag to true
+
+        // Call handleSend after a short delay to ensure state update
+        setTimeout(() => handleSend(), 100);
       };
 
       recognitionRef.current.onerror = (event) => {
@@ -125,6 +128,7 @@ function Chat() {
       { sender: "user", type: "text", content: input },
     ]);
     setInput("");
+    setIsSpeechInput(false); // Reset speech input flag after sending
 
     const aiResponse = await fetchAIResponse(input);
     setMessages((prev) => [
@@ -132,6 +136,12 @@ function Chat() {
       { sender: "ai", type: "text", content: aiResponse },
     ]);
   };
+
+  useEffect(() => {
+    if (isSpeechInput && input.trim() !== "") {
+      handleSend(); // Automatically sends the message when input is updated by speech
+    }
+  }, [input, isSpeechInput]);
 
   const handleTyping = () => {
     setIsTyping(true);
@@ -244,9 +254,9 @@ function Chat() {
       >
         {showDefaultMessage && (
           <div className="mt-[250px] p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
-            <h1 className="text-5xl text-black">
+            <h1 className="text-5xl font-bold text-white drop-shadow-lg">
               Hello users, ask anything to me.{" "}
-              <span className="text-pink-900 animate-pulse text-5xl">
+              <span className="text-teal-500 font-extrabold drop-shadow-lg animate-pulse text-5xl">
                 I am your chat assistant.
               </span>
             </h1>
@@ -267,7 +277,7 @@ function Chat() {
         {loading && (
           <div className="flex items-center justify-center p-2">
             <AiOutlineLoading3Quarters
-              className="animate-spin text-gray-500"
+              className="animate-spin text-red-400 text-2xl font-bold"
               size={24}
             />
           </div>
@@ -288,35 +298,40 @@ function Chat() {
         <button
           onClick={startListening}
           className={`p-2 ${
-            isFlashing ? "bg-blue-800 animate-pulse" : "bg-blue-500"
+            isFlashing ? "bg-black animate-pulse" : "bg-blue-500"
           } rounded text-white`}
         >
           {isFlashing ? "Listening..." : "🎤"}
         </button>
         <button
           onClick={stopListening}
-          className="p-2 bg-red-500 rounded text-white"
+          className="p-2 bg-red-500 hover:bg-green-600 rounded text-white"
         >
           🔲
         </button>
         <button
           onClick={handleSend}
-          className="p-2 bg-green-500 rounded text-white"
+          className="p-2 bg-green-500 rounded text-white hover:bg-red-950"
         >
           Send
         </button>
         <button
           onClick={stopSpeaking}
           className={`p-2 ${
-            isSpeaking ? "bg-yellow-300 animate-pulse" : "bg-yellow-500"
+            isSpeaking
+              ? "bg-yellow-300 hover:bg-green-900 animate-pulse"
+              : "bg-red-800"
           } rounded text-white`}
         >
-          {isSpeaking ? "Stop AI Speaking" : "Speak"}
+          {isSpeaking ? "Stop AI Voice" : "Speak"}
         </button>
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            setIsSpeechInput(false); // Ensure that typing doesn't trigger speech input handling
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               handleSend();

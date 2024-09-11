@@ -13,11 +13,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image:url("https://img.freepik.com/free-photo/view-robot-human-businessperson_23-2150912091.jpg?t=st=1726047538~exp=1726051138~hmac=05fa5c8feb2ae72ec14df84b78a449862e2dcb307264e07df2dc81f4836e0355&w=996");
+  background-image:url("https://tse4.mm.bing.net/th?id=OIG4.7Wq6KJ5bE6TXWItG6mAa&pid=ImgGn");
  
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 0% 0%, 100% 100%;
-  animation: slideBackground 15s linear infinite;
+  animation: slideBackground 25s ease-in-out infinite;
   z-index: -1; /* Ensures the background stays behind other content */
 }
