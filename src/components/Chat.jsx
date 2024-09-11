@@ -239,7 +239,11 @@ function Chat() {
       <div ref={chatContainerRef} className="chat-messages">
         {showDefaultMessage && (
           <div className="mt-[250px] p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
-            <h1 className="text-2xl">
+            <h1
+              className="text-2xl text-black relative w-[max-content] font-mono
+before:absolute before:inset-0 before:bg-green-950 
+before:animate-typewriter"
+            >
               Hello users, ask anything to me.{" "}
               <span className="text-pink-900 animate-pulse text-2xl">
                 I am your chat assistant.
