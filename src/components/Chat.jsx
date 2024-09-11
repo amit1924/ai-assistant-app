@@ -76,7 +76,8 @@ function Chat() {
         data.candidates[0].content.parts.length > 0
       ) {
         const aiResponse = data.candidates[0].content.parts[0].text;
-        speakText(aiResponse); // Speak AI's response
+        const cleanedResponse = sanitizeText(aiResponse); // Clean AI's response
+        speakText(cleanedResponse); // Speak AI's response
         return aiResponse;
       } else {
         return "No response from the AI.";
@@ -87,6 +88,11 @@ function Chat() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Sanitize text to remove special characters for speech synthesis
+  const sanitizeText = (text) => {
+    return text.replace(/\*\*/g, "").replace(/\*/g, "");
   };
 
   // Handle sending messages
@@ -255,14 +261,13 @@ function Chat() {
         <button
           onClick={handleSend}
           className="p-3 bg-blue-500 text-white rounded-lg"
-          disabled={loading}
         >
           Send
         </button>
-        {isSpeaking && (
+        {isSpeaking && ( // Conditionally render the Stop button
           <button
             onClick={stopSpeaking}
-            className="p-3 bg-red-500 text-white rounded-lg"
+            className="p-3 bg-red-500 text-white rounded-lg ml-2"
           >
             Stop
           </button>
