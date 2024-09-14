@@ -5,7 +5,12 @@ import "prismjs/themes/prism-tomorrow.css";
 import "./chat.css";
 
 function Chat() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    const storedMessages = localStorage.getItem("messages");
+    return storedMessages ? JSON.parse(storedMessages) : [];
+  });
+
+  const [context, setContext] = useState({});
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -19,6 +24,10 @@ function Chat() {
   const userScrolledUp = useRef(false);
   const recognitionRef = useRef(null);
   const speechRef = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem("messages", JSON.stringify(messages));
+  }, [messages]);
 
   useEffect(() => {
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
@@ -87,11 +96,23 @@ function Chat() {
                 role: "user",
                 parts: [{ text: message }],
               },
+              // Add context to the request
+              ...(Object.keys(context).length > 0
+                ? [
+                    {
+                      role: "user",
+                      parts: [
+                        {
+                          text: `Context: ${Object.values(context).join(", ")}`,
+                        },
+                      ],
+                    },
+                  ]
+                : []),
             ],
           }),
         }
       );
-
       const data = await response.json();
       if (
         data.candidates &&
@@ -104,6 +125,13 @@ function Chat() {
         const cleanedResponse = sanitizeText(aiResponse);
         speakText(cleanedResponse);
         setShowDefaultMessage(false);
+
+        // update context if the response contains a keyword
+        const keywords = aiResponse.match(/([A-Z][a-z]+ [A-Z][a-z]+)/g);
+        if (keywords) {
+          setContext((prevContext) => ({ ...prevContext, ...keywords }));
+        }
+
         return aiResponse;
       } else {
         return "No response from the AI.";
@@ -246,6 +274,14 @@ function Chat() {
     Prism.highlightAll();
   }, [messages]);
 
+  const clearChatFunction = () => {
+    localStorage.removeItem("messages");
+    setMessages([]); // Clear chat state
+
+    // Reload the page
+    window.location.reload();
+  };
+
   return (
     <div className="chat-container max-w-screen-sm mx-auto p-4">
       <div
@@ -256,8 +292,8 @@ function Chat() {
           <div className="mt-[250px] p-2 rounded bg-gradient-to-r from-maroon-600 to-maroon-900 text-white">
             <h1 className="text-5xl font-bold text-white drop-shadow-lg">
               Hello users, ask anything to me.{" "}
-              <span className="text-teal-500 font-extrabold drop-shadow-lg animate-pulse text-5xl">
-                I am your chat assistant.
+              <span className="text-pink-700 font-extrabold drop-shadow-lg animate-pulse text-5xl">
+                I am your AI Assistant.
               </span>
             </h1>
           </div>
@@ -324,6 +360,12 @@ function Chat() {
           } rounded text-white`}
         >
           {isSpeaking ? "Stop AI Voice" : "Speak"}
+        </button>
+        <button
+          className="bg-lime-700 px-4 py-2 border-4 rounded-2xl hover:bg-emerald-600"
+          onClick={clearChatFunction}
+        >
+          Clear chat
         </button>
         <input
           type="text"
